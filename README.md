@@ -8,8 +8,8 @@ Feel free to fork. I'll merge any pull requests that make sense. Perhaps some da
 
 	 Command  | Arguments                   | Description                                                                         
 	----------|-----------------------------|-------------------------------------------------------------------------------------
-	 Add      | [mMaAnNcC]                  | Ignore a hostmask. m, a, n, c = message, action, notice, CTCP; uppercase = private. 
+	 Add      | <user!nick@host> [mMaAnNcC] | Ignore a hostmask. m, a, n, c = message, action, notice, CTCP; uppercase = private. 
 	 Clear    |                             | Clear all ignores from the list
-	 Del      |                             | Unignore a hostmask
+	 Del      | <user!nick@host>            | Unignore a hostmask
 	 Help     | search                      | Generate this output
 	 List     |                             | Display the ignore list
