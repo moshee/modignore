@@ -101,15 +101,18 @@ public:
 		PutModule("[debug] Ignore(): modes is " + modes.DebugString());
 #endif
 
-		pair<set<IgnoreEntry>::iterator,bool> p = ignoreList.insert(entry);
-		if (!p.second) {
-			// the hostmask already exists so replace it (with new flags)
-			ignoreList.erase(p.first);
-			ignoreList.insert(entry);
-			PutModule("Updated '" + entry.mask + "' [" + entry.modes.String() + "].");
-		} else {
-			PutModule("Added '" + entry.mask + "' [" + entry.modes.String() + "] to ignore list.");
+		// have to do this manually for the case insensitive match
+		for (set<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
+			if (mask.Equals(ignore->mask)) {
+				ignoreList.erase(ignore);
+				ignoreList.insert(entry);
+				PutModule("Updated '" + entry.mask + "' [" + entry.modes.String() + "].");
+				return;
+			}
 		}
+		// TODO: possible minor refactor opportunity here
+		ignoreList.insert(entry);
+		PutModule("Added '" + entry.mask + "' [" + entry.modes.String() + "] to ignore list.");
 	}
 
 	// syntax is like:
