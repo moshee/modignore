@@ -1,4 +1,4 @@
-An ignore module for ZNC.
+An ignore module for ZNC 1.0.
 
 Build with `znc-buildmod`. Move the resulting `.so` file to your `~/.znc/modules`.
 
@@ -6,14 +6,10 @@ Feel free to fork. I'll merge any pull requests that make sense. Perhaps some da
 
 ### Usage
 
-```
-+---------+-----------------------------+-------------------------------------------------------------------------------------+
-| Command | Arguments                   | Description                                                                         |
-+---------+-----------------------------+-------------------------------------------------------------------------------------+
-[mMaAnNcC] | Ignore a hostmask. m, a, n, c = message, action, notice, CTCP; uppercase = private. |
-| Clear   |                             | Clear all ignores from the list                                                     |
-           | Unignore a hostmask                                                                 |
-| Help    | search                      | Generate this output                                                                |
-| List    |                             | Display the ignore list                                                             |
-+---------+-----------------------------+-------------------------------------------------------------------------------------+
-```
+	 Command  | Arguments                   | Description                                                                         
+	----------|-----------------------------|-------------------------------------------------------------------------------------
+	 Add      | [mMaAnNcC]                  | Ignore a hostmask. m, a, n, c = message, action, notice, CTCP; uppercase = private. 
+	 Clear    |                             | Clear all ignores from the list
+	 Del      |                             | Unignore a hostmask
+	 Help     | search                      | Generate this output
+	 List     |                             | Display the ignore list
