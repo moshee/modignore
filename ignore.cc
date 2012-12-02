@@ -1,7 +1,7 @@
 #include <znc/Modules.h>
 #include <znc/User.h>
 #include <znc/znc.h>
-#include <set>
+#include <list>
 #ifdef __DEBUG
 #include <iostream>
 #endif
@@ -88,9 +88,11 @@ typedef struct IgnoreEntry {
 		: mask(_mask)
 		, modes(_modes) {}
 
+	/*
 	bool operator<(const IgnoreEntry& rhs) const {
 		return mask.StrCmp(rhs.mask) == -1;
 	}
+	*/
 } IgnoreEntry;
 
 class CIgnore : public CModule {
@@ -101,17 +103,22 @@ public:
 		PutModule("[debug] Ignore(): modes is " + modes.DebugString());
 #endif
 
-		// have to do this manually for the case insensitive match
-		for (set<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
+		// have to do this search manually for the case insensitive match
+		for (list<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
 			if (mask.Equals(ignore->mask)) {
+				// replace existing with new
+				DelNV(ignore->mask);
+				SetNV(entry.mask, entry.modes.String());
+				ignoreList.insert(ignore, entry);
 				ignoreList.erase(ignore);
-				ignoreList.insert(entry);
+
 				PutModule("Updated '" + entry.mask + "' [" + entry.modes.String() + "].");
 				return;
 			}
 		}
 		// TODO: possible minor refactor opportunity here
-		ignoreList.insert(entry);
+		SetNV(entry.mask, entry.modes.String());
+		ignoreList.push_back(entry);
 		PutModule("Added '" + entry.mask + "' [" + entry.modes.String() + "] to ignore list.");
 	}
 
@@ -138,13 +145,11 @@ public:
 #ifdef __DEBUG
 		PutModule("[debug] sModes = " + sModes);
 #endif
-
-		SetNV(mask, sModes);
 	}
 
 	void UnignoreCommand(const CString& line) {
 		CString mask = line.Token(1);
-		for (set<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
+		for (list<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
 			if (ignore->mask.Equals(mask)) {
 				ignoreList.erase(ignore);
 				DelNV(mask);
@@ -165,7 +170,7 @@ public:
 		table.AddColumn("Hostmask");
 		table.AddColumn("Modes");
 
-		for (set<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
+		for (list<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
 			table.AddRow();
 			table.SetCell("Hostmask", ignore->mask);
 			IgnoreModes m = ignore->modes;
@@ -229,7 +234,7 @@ public:
 			cerr << ">>>>>> " << a->first << " " << a->second << endl;
 #endif
 			IgnoreModes modes(a->second);
-			Ignore(a->first, modes);
+			ignoreList.push_back(IgnoreEntry(a->first, modes));
 		}
 
 		int size = (int)ignoreList.size();
@@ -245,7 +250,7 @@ public:
 	// matches any of the ones in the list and sends a HALT if it does
 	EModRet Check(CNick& nick, IgnoreMode mode) {
 		CString mask = nick.GetHostMask();
-		for (set<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
+		for (list<IgnoreEntry>::iterator ignore = ignoreList.begin(); ignore != ignoreList.end(); ++ignore) {
 			if (!ignore->modes.modes[mode]) continue;
 			if (mask.WildCmp(ignore->mask)) {
 #ifdef __DEBUG
@@ -293,7 +298,7 @@ public:
 	}
 
 private:
-	set<IgnoreEntry> ignoreList;
+	list<IgnoreEntry> ignoreList;
 };
 
 USERMODULEDEFS(CIgnore, "ignore users by hostmask")
