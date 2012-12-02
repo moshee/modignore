@@ -13,3 +13,8 @@ Feel free to fork. I'll merge any pull requests that make sense. Perhaps some da
 	 Del      | `<user!nick@host>`            | Unignore a hostmask
 	 Help     | search                        | Generate this output
 	 List     |                               | Display the ignore list
+
+### To do
+
+- Ignore invites
+- Ignore DCC (I'll have to take a look at how this works in the IRC protocol)
