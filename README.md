@@ -18,3 +18,4 @@ Feel free to fork. I'll merge any pull requests that make sense. Perhaps some da
 
 - Ignore invites
 - Ignore DCC (I'll have to take a look at how this works in the IRC protocol)
+- Ignore text patterns
