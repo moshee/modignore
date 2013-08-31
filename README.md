@@ -1,8 +1,13 @@
 An ignore module for ZNC 1.0.
 
-Build with `znc-buildmod`. Move the resulting `.so` file to your `~/.znc/modules`.
-
 Pull requests welcome.
+
+### Install
+
+```
+$ znc-buildmod ignore.cc
+$ mv ignore.so ~/.znc/modules
+```
 
 ### Usage
 
