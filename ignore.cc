@@ -333,6 +333,7 @@ void ModIgnore::CmdDelIgnore(const CString& line) {
 }
 
 void ModIgnore::CmdUnload(const CString& line) {
+	cleanup();
 	throw UNLOAD;
 }
 
