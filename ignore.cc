@@ -290,7 +290,7 @@ void ModIgnore::CmdDelIgnore(const CString& line) {
 	}
 
 	int index = arg.ToInt();
-	if (index > (int)IgnoreList.size() || index < 0) {
+	if (index > (int)IgnoreList.size()-1 || index < 0) {
 		PutModule("Error: Invalid index.");
 		return;
 	}
