@@ -1,12 +1,4 @@
 #include "ignore.h"
-
-#include <znc/User.h>
-#include <znc/Modules.h>
-#include <znc/znc.h>
-
-#include <regex.h>
-#include <list>
-#include <string>
 #include <iostream>
 
 enum {
