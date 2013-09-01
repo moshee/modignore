@@ -6,19 +6,19 @@
 #include <list>
 #include <string>
 
-using namespace std;
+using std::list;
 
 class Matcher {
 protected:
 	int IgnoreModes;
 public:
-	Matcher(CString modes);
+	Matcher(const CString& modes);
 	virtual ~Matcher() {}
 
 	CString Modes() const;
-	bool operator ==(Matcher& other);
+	bool operator ==(const Matcher& other);
 
-	virtual bool Match(CNick& nick, CString& line, int mode) const = 0;
+	virtual bool Match(CNick& nick, const CString& line, int mode) const = 0;
 	virtual CString String() const = 0;
 	virtual CString Data() const = 0;
 	virtual CString Type() const = 0;
@@ -28,10 +28,10 @@ class HostMatcher : public Matcher {
 protected:
 	CString Mask;
 public:
-	HostMatcher(CString modes, CString mask);
+	HostMatcher(const CString& modes, const CString& mask);
 	virtual ~HostMatcher() {}
 
-	virtual bool Match(CNick& nick, CString& line, int mode) const;
+	virtual bool Match(CNick& nick, const CString& line, int mode) const;
 	virtual CString String() const;
 	virtual CString Data() const;
 	virtual CString Type() const;
@@ -42,10 +42,10 @@ protected:
 	regex_t Regex;
 	CString Pattern;
 public:
-	RegexMatcher(CString modes, CString re);
+	RegexMatcher(const CString& modes, const CString& re);
 	~RegexMatcher();
 
-	virtual bool Match(CNick& nick, CString& line, int mode) const;
+	virtual bool Match(CNick& nick, const CString& line, int mode) const;
 	virtual CString String() const;
 	virtual CString Data() const;
 	virtual CString Type() const;
@@ -63,8 +63,6 @@ protected:
 public:
 	virtual ~ModIgnore();
 	virtual bool OnLoad(const CString& args, CString& message);
-
-	void AddIgnore(IgnoreEntry ignore);
 
 	// Commands exposed to the user
 	void CmdAddHostMatcher(const CString& line);
@@ -100,6 +98,7 @@ public:
 			"",								"Unload this module");
 	}
 private:
+	void addIgnore(IgnoreEntry ignore);
 	EModRet check(CNick& nick, CString& message, int mode);
 	void cleanup();
 };

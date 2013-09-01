@@ -1,6 +1,9 @@
 #include "ignore.h"
 #include <iostream>
 
+using std::cerr;
+using std::endl;
+
 enum {
 	ModeMsg        = 1<<0,
 	ModePrivMsg    = 1<<1,
@@ -15,7 +18,7 @@ enum {
 const int NUM_MODES = 8;
 const char MODES[NUM_MODES+1] = "mMaAnNcC";
 
-Matcher::Matcher(CString input_modes) {
+Matcher::Matcher(const CString& input_modes) {
 	IgnoreModes = 0;
 	bool bad;
 
@@ -31,8 +34,7 @@ Matcher::Matcher(CString input_modes) {
 		}
 		if (bad) {
 			// invalid character not found in MODES
-			CString err("Invalid mode character: " + CString(input_modes[ch]));
-			throw err;
+			throw CString("Invalid mode character: " + CString(input_modes[ch]));
 		}
 	}
 
@@ -56,11 +58,11 @@ CString Matcher::Modes() const {
 	return modes;
 }
 
-bool Matcher::operator ==(Matcher& other) {
+bool Matcher::operator ==(const Matcher& other) {
 	return other.Data() == Data() && other.Type() == Type();
 }
 
-HostMatcher::HostMatcher(CString modes, CString mask) : Matcher(modes) {
+HostMatcher::HostMatcher(const CString& modes, const CString& mask) : Matcher(modes) {
 	CNick host_tester(mask);
 	CString host = host_tester.GetHostMask();
 
@@ -72,7 +74,7 @@ HostMatcher::HostMatcher(CString modes, CString mask) : Matcher(modes) {
 	}
 }
 
-bool HostMatcher::Match(CNick& nick, CString& message, int mode) const {
+bool HostMatcher::Match(CNick& nick, const CString& message, int mode) const {
 	if ((mode & IgnoreModes) == 0) {
 		return false;
 	}
@@ -93,7 +95,7 @@ CString HostMatcher::Type() const {
 	return "hostmask";
 }
 
-RegexMatcher::RegexMatcher(CString modes, CString re_string) : Matcher(modes) {
+RegexMatcher::RegexMatcher(const CString& modes, const CString& re_string) : Matcher(modes) {
 	const char* re = re_string.c_str();
 	Pattern = re_string;
 
@@ -109,7 +111,7 @@ RegexMatcher::RegexMatcher(CString modes, CString re_string) : Matcher(modes) {
 	}
 }
 
-bool RegexMatcher::Match(CNick& nick, CString& message, int mode) const {
+bool RegexMatcher::Match(CNick& nick, const CString& message, int mode) const {
 	if ((mode & IgnoreModes) == 0) {
 		return false;
 	}
@@ -192,10 +194,10 @@ bool ModIgnore::OnLoad(const CString& args, CString& message) {
 }
 
 
-void ModIgnore::AddIgnore(IgnoreEntry ignore) {
+void ModIgnore::addIgnore(IgnoreEntry ignore) {
 	int i = 0;
 	for (list<IgnoreEntry>::iterator a = IgnoreList.begin(); a != IgnoreList.end(); ++a) {
-		if (ignore.m == a->m) {
+		if (*ignore.m == *a->m) {
 			PutModule("Error: the ignore:");
 			PutModule("    " + a->m->String());
 			PutModule("already exists as entry #" + CString(i) + ".");
@@ -239,7 +241,7 @@ void ModIgnore::CmdAddHostMatcher(const CString& line) {
 	try {
 		Matcher* m = new HostMatcher(modes, mask);
 		IgnoreEntry e = { m };
-		AddIgnore(e);
+		addIgnore(e);
 	} catch (CString err) {
 		PutModule("Error: " + err);
 		PutModule("The entry will not be added to the ignore list.");
@@ -275,7 +277,7 @@ void ModIgnore::CmdAddRegexMatcher(const CString& line) {
 	try {
 		Matcher* m = new RegexMatcher(modes, re);
 		IgnoreEntry e = { m };
-		AddIgnore(e);
+		addIgnore(e);
 	} catch (CString err) {
 		PutModule("Error: " + err);
 		PutModule("The entry will not be added to the ignore list.");
