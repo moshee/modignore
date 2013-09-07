@@ -1,61 +1,78 @@
 #include "ignore.h"
-#include <iostream>
-
-using std::cerr;
-using std::endl;
 
 enum {
-	ModeMsg        = 1<<0,
-	ModePrivMsg    = 1<<1,
-	ModeAction     = 1<<2,
-	ModePrivAction = 1<<3,
-	ModeNotice     = 1<<4,
-	ModePrivNotice = 1<<5,
-	ModeCTCP       = 1<<6,
-	ModePrivCTCP   = 1<<7,
+	ModeMsg,
+	ModePrivMsg,
+	ModeAction,
+	ModePrivAction,
+	ModeNotice,
+	ModePrivNotice,
+	ModeCTCP,
+	ModePrivCTCP
 };
 
-const int NUM_MODES = 8;
-const char MODES[NUM_MODES+1] = "mMaAnNcC";
-
 Matcher::Matcher(const CString& input_modes) {
-	IgnoreModes = 0;
-	bool bad;
+	if (input_modes.empty()) {
+		IgnoreModes = bitset<NUM_MODES>(0);
+	} else {
+		int sz = (int)input_modes.length();
+		char c0 = input_modes[0];
 
-	for (int ch = 0; ch < (int)input_modes.length(); ch++) {
-		bad = true;
-
-		for (int mode = 0; mode < NUM_MODES; mode++) {
-			if (MODES[mode] == input_modes[ch]) {
-				IgnoreModes |= (1<<mode);
-				bad = false;
-				break;
+		if (c0 == '1' || c0 == '0') {
+			// this means it's the third format revision
+			// make use of bitset constructor
+			string modes(input_modes);
+			if (sz != NUM_MODES) {
+				modes += string(NUM_MODES-sz, '0');
 			}
-		}
-		if (bad) {
-			// invalid character not found in MODES
-			throw CString("Invalid mode character: " + CString(input_modes[ch]));
+
+			IgnoreModes = bitset<NUM_MODES>(modes);
+		} else {
+			// this means it's the second format revision
+			// (man, I can imagine how code can get messy real fast trying to
+			// support older versions)
+			bool bad;
+
+			for (int ch = 0; ch < sz; ch++) {
+				bad = true;
+
+				for (int mode = 0; mode < NUM_MODES; mode++) {
+					if (MODES[mode] == input_modes[ch]) {
+						IgnoreModes.set(mode);
+						bad = false;
+						break;
+					}
+				}
+				if (bad) {
+					// invalid character not found in MODES
+					throw CString("Invalid mode character: " + CString(input_modes[ch]));
+				}
+			}
 		}
 	}
 
-	if (IgnoreModes == 0) {
+	if (IgnoreModes.count() == 0) {
 		throw CString("There are no modes for this ignore entry to act upon");
 	}
 }
 
-// the base class String() returns just the mode chars
+// return mode letters (mMaAnNcC)
 CString Matcher::Modes() const {
 	char c[NUM_MODES];
 	int ptr = 0;
 
 	for (int i = 0; i < NUM_MODES; i++) {
-		if ((IgnoreModes & (1<<i)) != 0) {
+		if (IgnoreModes[i]) {
 			c[ptr++] = MODES[i];
 		}
 	}
 
-	CString modes(c, (size_t)ptr);
-	return modes;
+	return CString(c, (size_t)ptr);
+}
+
+// return string representation of ignore modes bitmask for storage
+string Matcher::Bits() const {
+	return IgnoreModes.to_string();
 }
 
 bool Matcher::operator ==(const Matcher& other) {
@@ -75,7 +92,7 @@ HostMatcher::HostMatcher(const CString& modes, const CString& mask) : Matcher(mo
 }
 
 bool HostMatcher::Match(CNick& nick, const CString& message, int mode) const {
-	if ((mode & IgnoreModes) == 0) {
+	if (IgnoreModes[mode]) {
 		return false;
 	}
 
@@ -99,7 +116,7 @@ RegexMatcher::RegexMatcher(const CString& modes, const CString& re_string) : Mat
 	const char* re = re_string.c_str();
 	Pattern = re_string;
 
-	int status = regcomp(&Regex, re, REG_EXTENDED | REG_NOSUB);
+	int status = regcomp(&Regex, re, REG_EXTENDED|REG_NOSUB);
 	if (status != 0) {
 		size_t err_size = regerror(status, &Regex, NULL, 0);
 		char* buf = (char*)malloc(err_size);
@@ -112,7 +129,7 @@ RegexMatcher::RegexMatcher(const CString& modes, const CString& re_string) : Mat
 }
 
 bool RegexMatcher::Match(CNick& nick, const CString& message, int mode) const {
-	if ((mode & IgnoreModes) == 0) {
+	if (IgnoreModes[mode]) {
 		return false;
 	}
 
@@ -207,7 +224,7 @@ void ModIgnore::addIgnore(IgnoreEntry ignore) {
 		i++;
 	}
 	IgnoreList.push_back(ignore);
-	SetNV(ignore.m->Data(), ignore.m->Modes() + "|" + ignore.m->Type());
+	SetNV(ignore.m->Data(), ignore.m->Bits() + "|" + ignore.m->Type());
 	PutModule("Added " + ignore.m->String());
 }
 

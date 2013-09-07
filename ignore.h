@@ -5,17 +5,23 @@
 #include <regex.h>
 #include <list>
 #include <string>
+#include <bitset>
+#include <iostream>
 
-using std::list;
+using namespace std;
+
+const int NUM_MODES = 8;
+const char MODES[NUM_MODES+1] = "mMaAnNcC";
 
 class Matcher {
 protected:
-	int IgnoreModes;
+	bitset<NUM_MODES> IgnoreModes;
 public:
 	Matcher(const CString& modes);
 	virtual ~Matcher() {}
 
 	CString Modes() const;
+	string Bits() const;
 	bool operator ==(const Matcher& other);
 
 	virtual bool Match(CNick& nick, const CString& line, int mode) const = 0;
