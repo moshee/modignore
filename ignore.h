@@ -74,7 +74,6 @@ public:
 	void CmdAddHostMatcher(const CString& line);
 	void CmdAddRegexMatcher(const CString& line);
 	void CmdDelIgnore(const CString& line);
-	void CmdUnload(const CString& line);
 	void CmdList(const CString& line);
 	void CmdClear(const CString& line);
 
@@ -100,8 +99,6 @@ public:
 			"", 							"Display the ignore list");
 		AddCommand("Clear",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdClear),
 			"",								"Clear all ignore entries");
-		AddCommand("Unload",	static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdUnload),
-			"",								"Unload this module");
 	}
 private:
 	void addIgnore(IgnoreEntry ignore);

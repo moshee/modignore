@@ -92,7 +92,7 @@ HostMatcher::HostMatcher(const CString& modes, const CString& mask) : Matcher(mo
 }
 
 bool HostMatcher::Match(CNick& nick, const CString& message, int mode) const {
-	if (IgnoreModes[mode]) {
+	if (!IgnoreModes[mode]) {
 		return false;
 	}
 
@@ -129,7 +129,7 @@ RegexMatcher::RegexMatcher(const CString& modes, const CString& re_string) : Mat
 }
 
 bool RegexMatcher::Match(CNick& nick, const CString& message, int mode) const {
-	if (IgnoreModes[mode]) {
+	if (!IgnoreModes[mode]) {
 		return false;
 	}
 
@@ -343,11 +343,6 @@ void ModIgnore::CmdDelIgnore(const CString& line) {
 	PutModule("Error: Couldn't find corresponding ignore in the ZNC module registry.");
 }
 
-void ModIgnore::CmdUnload(const CString& line) {
-	cleanup();
-	throw UNLOAD;
-}
-
 void ModIgnore::CmdList(const CString& line) {
 	if (IgnoreList.empty()) {
 		PutModule("Ignore list is empty.");
@@ -381,7 +376,6 @@ void ModIgnore::CmdClear(const CString& line) {
 	}
 	int size = IgnoreList.size();
 	cleanup();
-	IgnoreList.clear();
 	PutModule(CString(size) + " ignore" + (size == 1 ? "" : "s") + " erased.");
 }
 
@@ -430,6 +424,7 @@ void ModIgnore::cleanup() {
 	for (list<IgnoreEntry>::iterator a = IgnoreList.begin(); a != IgnoreList.end(); ++a) {
 		delete a->m;
 	}
+	IgnoreList.clear();
 }
 
 MODULEDEFS(ModIgnore, "Ignore lines by hostmask or text pattern");

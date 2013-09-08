@@ -19,7 +19,6 @@ $ mv ignore.so ~/.znc/modules
 	 Del        | `<n>`                         | Remove an ignore entry by index
 	 Help       | search                        | Generate this output
 	 List       |                               | Display the ignore list
-	 Unload     |                               | Unload this module
 
 The required arguments for AddHost and AddPattern should be "quoted" if they contain spaces.
 
