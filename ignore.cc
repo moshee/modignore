@@ -432,4 +432,4 @@ void ModIgnore::cleanup() {
 	}
 }
 
-USERMODULEDEFS(ModIgnore, "Ignore lines by hostmask or text pattern");
+MODULEDEFS(ModIgnore, "Ignore lines by hostmask or text pattern");
