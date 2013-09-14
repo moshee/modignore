@@ -68,16 +68,15 @@ Matcher::Matcher(const CString& input_modes) {
 
 // return mode letters (mMaAnNcC)
 CString Matcher::Modes() const {
-	char c[NUM_MODES];
-	int ptr = 0;
+	CString s;
 
 	for (int i = 0; i < NUM_MODES; i++) {
 		if (IgnoreModes[i]) {
-			c[ptr++] = MODES[i];
+			s.push_back(MODES[i]);
 		}
 	}
 
-	return CString(c, (size_t)ptr);
+	return s;
 }
 
 // return string representation of ignore modes bitmask for storage
@@ -85,7 +84,7 @@ string Matcher::Bits() const {
 	return IgnoreModes.to_string();
 }
 
-bool Matcher::operator ==(const Matcher& other) {
+bool Matcher::operator ==(const Matcher& other) const {
 	return other.Data() == Data() && other.Type() == Type();
 }
 
@@ -194,7 +193,7 @@ bool ModIgnore::OnLoad(const CString& args, CString& message) {
 				message = "Invalid ignore type: '" + type + "'";
 				return false;
 			}
-		} catch (exception err) {
+		} catch (exception& err) {
 			// TODO: return false?
 			cerr << "ignore: Error: " << err.what() << endl;
 			DelNV(a);
@@ -261,7 +260,7 @@ void ModIgnore::CmdAddHostMatcher(const CString& line) {
 		Matcher* m = new HostMatcher(modes, mask);
 		IgnoreEntry e = { m };
 		addIgnore(e);
-	} catch (exception err) {
+	} catch (exception& err) {
 		string msg("Error: ");
 		msg += err.what();
 		PutModule(msg);
@@ -299,7 +298,7 @@ void ModIgnore::CmdAddRegexMatcher(const CString& line) {
 		Matcher* m = new RegexMatcher(modes, re);
 		IgnoreEntry e = { m };
 		addIgnore(e);
-	} catch (exception err) {
+	} catch (exception& err) {
 		string msg("Error: ");
 		msg += err.what();
 		PutModule(msg);

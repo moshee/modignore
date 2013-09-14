@@ -20,7 +20,7 @@ public:
 
 	CString Modes() const;
 	std::string Bits() const;
-	bool operator ==(const Matcher& other);
+	bool operator ==(const Matcher& other) const;
 
 	virtual bool Match(CNick& nick, const CString& line, int mode) const = 0;
 	virtual CString String() const = 0;
