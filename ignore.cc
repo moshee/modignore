@@ -1,4 +1,7 @@
+#include <stdexcept>
 #include "ignore.h"
+
+using namespace std;
 
 enum {
 	ModeMsg,
@@ -9,6 +12,11 @@ enum {
 	ModePrivNotice,
 	ModeCTCP,
 	ModePrivCTCP
+};
+
+class MatcherError : public runtime_error {
+public:
+	MatcherError(const string& err) : runtime_error(err) {}
 };
 
 Matcher::Matcher(const CString& input_modes) {
@@ -45,14 +53,16 @@ Matcher::Matcher(const CString& input_modes) {
 				}
 				if (bad) {
 					// invalid character not found in MODES
-					throw CString("Invalid mode character: " + CString(input_modes[ch]));
+					CString err("Invalid mode character: ");
+					err.push_back(input_modes[ch]);
+					throw MatcherError(err);
 				}
 			}
 		}
 	}
 
 	if (IgnoreModes.count() == 0) {
-		throw CString("There are no modes for this ignore entry to act upon");
+		throw MatcherError("There are no modes for this ignore entry to act upon");
 	}
 }
 
@@ -79,6 +89,10 @@ bool Matcher::operator ==(const Matcher& other) {
 	return other.Data() == Data() && other.Type() == Type();
 }
 
+inline bool Matcher::Match(CNick& nick, const CString& line, int mode) const {
+	return IgnoreModes[mode];
+}
+
 HostMatcher::HostMatcher(const CString& modes, const CString& mask) : Matcher(modes) {
 	CNick host_tester(mask);
 	CString host = host_tester.GetHostMask();
@@ -86,18 +100,13 @@ HostMatcher::HostMatcher(const CString& modes, const CString& mask) : Matcher(mo
 	if (host.Equals(mask)) {
 		Mask = mask;
 	} else {
-		CString err("HostMatcher: Malformed hostmask.");
-		throw err;
+		
+		throw MatcherError("HostMatcher: Malformed hostmask.");
 	}
 }
 
 bool HostMatcher::Match(CNick& nick, const CString& message, int mode) const {
-	if (!IgnoreModes[mode]) {
-		return false;
-	}
-
-	CString mask = nick.GetHostMask();
-	return mask.WildCmp(Mask);
+	return Matcher::Match(nick, message, mode) && nick.GetHostMask().WildCmp(Mask);
 }
 
 CString HostMatcher::String() const {
@@ -119,22 +128,15 @@ RegexMatcher::RegexMatcher(const CString& modes, const CString& re_string) : Mat
 	int status = regcomp(&Regex, re, REG_EXTENDED|REG_NOSUB);
 	if (status != 0) {
 		size_t err_size = regerror(status, &Regex, NULL, 0);
-		char* buf = (char*)malloc(err_size);
-		(void)regerror(status, &Regex, buf, err_size);
-		CString error(buf, err_size);
+		string error(err_size, '\0');
+		(void)regerror(status, &Regex, &error[0], err_size);
 
-		CString err_msg("RegexMatcher: Failed to compile regular expression /" + re_string + "/: " + error);
-		throw err_msg;
+		throw MatcherError("RegexMatcher: Failed to compile regular expression /" + re_string + "/: " + error);
 	}
 }
 
 bool RegexMatcher::Match(CNick& nick, const CString& message, int mode) const {
-	if (!IgnoreModes[mode]) {
-		return false;
-	}
-
-	int status = regexec(&Regex, message.c_str(), 0, NULL, 0);
-	return status == 0;
+	return Matcher::Match(nick, message, mode) && regexec(&Regex, message.c_str(), 0, NULL, 0) == 0;
 }
 
 CString RegexMatcher::String() const {
@@ -192,9 +194,9 @@ bool ModIgnore::OnLoad(const CString& args, CString& message) {
 				message = "Invalid ignore type: '" + type + "'";
 				return false;
 			}
-		} catch (CString err) {
+		} catch (exception err) {
 			// TODO: return false?
-			cerr << "ignore: Error: " << err << endl;
+			cerr << "ignore: Error: " << err.what() << endl;
 			DelNV(a);
 			continue;
 		}
@@ -213,7 +215,7 @@ bool ModIgnore::OnLoad(const CString& args, CString& message) {
 
 void ModIgnore::addIgnore(IgnoreEntry ignore) {
 	int i = 0;
-	for (list<IgnoreEntry>::iterator a = IgnoreList.begin(); a != IgnoreList.end(); ++a) {
+	for (vector<IgnoreEntry>::iterator a = IgnoreList.begin(); a != IgnoreList.end(); ++a) {
 		if (*ignore.m == *a->m) {
 			PutModule("Error: the ignore:");
 			PutModule("    " + a->m->String());
@@ -259,8 +261,10 @@ void ModIgnore::CmdAddHostMatcher(const CString& line) {
 		Matcher* m = new HostMatcher(modes, mask);
 		IgnoreEntry e = { m };
 		addIgnore(e);
-	} catch (CString err) {
-		PutModule("Error: " + err);
+	} catch (exception err) {
+		string msg("Error: ");
+		msg += err.what();
+		PutModule(msg);
 		PutModule("The entry will not be added to the ignore list.");
 	}
 }
@@ -295,8 +299,10 @@ void ModIgnore::CmdAddRegexMatcher(const CString& line) {
 		Matcher* m = new RegexMatcher(modes, re);
 		IgnoreEntry e = { m };
 		addIgnore(e);
-	} catch (CString err) {
-		PutModule("Error: " + err);
+	} catch (exception err) {
+		string msg("Error: ");
+		msg += err.what();
+		PutModule(msg);
 		PutModule("The entry will not be added to the ignore list.");
 	}
 }
@@ -314,8 +320,8 @@ void ModIgnore::CmdDelIgnore(const CString& line) {
 		return;
 	}
 
-	list<IgnoreEntry>::iterator ignore = IgnoreList.begin();
-	for (int i = 0; i < index; i++) ignore++;
+	vector<IgnoreEntry>::iterator ignore = IgnoreList.begin();
+	advance(ignore, index);
 	
 	// find the corresponding entry in the registry
 	// we can't just use DelNV or FindNV directly because we have to see if the
@@ -356,7 +362,7 @@ void ModIgnore::CmdList(const CString& line) {
 	table.AddColumn("Modes");
 
 	int i = 0;
-	for (list<IgnoreEntry>::iterator ignore = IgnoreList.begin(); ignore != IgnoreList.end(); ++ignore) {
+	for (vector<IgnoreEntry>::iterator ignore = IgnoreList.begin(); ignore != IgnoreList.end(); ++ignore) {
 		table.AddRow();
 		table.SetCell("#", CString(i));
 		table.SetCell("Type", ignore->m->Type());
@@ -380,7 +386,7 @@ void ModIgnore::CmdClear(const CString& line) {
 }
 
 CModule::EModRet ModIgnore::check(CNick& nick, CString& message, int mode) {
-	for (list<IgnoreEntry>::iterator ignore = IgnoreList.begin(); ignore != IgnoreList.end(); ++ignore) {
+	for (vector<IgnoreEntry>::iterator ignore = IgnoreList.begin(); ignore != IgnoreList.end(); ++ignore) {
 		if (ignore->m->Match(nick, message, mode)) {
 			return HALT;
 		}
@@ -421,7 +427,7 @@ CModule::EModRet ModIgnore::OnPrivCTCP(CNick& nick, CString& message) {
 }
 
 void ModIgnore::cleanup() {
-	for (list<IgnoreEntry>::iterator a = IgnoreList.begin(); a != IgnoreList.end(); ++a) {
+	for (vector<IgnoreEntry>::iterator a = IgnoreList.begin(); a != IgnoreList.end(); ++a) {
 		delete a->m;
 	}
 	IgnoreList.clear();

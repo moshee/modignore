@@ -3,25 +3,23 @@
 #include <znc/znc.h>
 
 #include <regex.h>
-#include <list>
+#include <vector>
 #include <string>
 #include <bitset>
 #include <iostream>
-
-using namespace std;
 
 const int NUM_MODES = 8;
 const char MODES[NUM_MODES+1] = "mMaAnNcC";
 
 class Matcher {
 protected:
-	bitset<NUM_MODES> IgnoreModes;
+	std::bitset<NUM_MODES> IgnoreModes;
 public:
 	Matcher(const CString& modes);
 	virtual ~Matcher() {}
 
 	CString Modes() const;
-	string Bits() const;
+	std::string Bits() const;
 	bool operator ==(const Matcher& other);
 
 	virtual bool Match(CNick& nick, const CString& line, int mode) const = 0;
@@ -57,7 +55,7 @@ public:
 	virtual CString Type() const;
 };
 
-// container because a std::list<> can't contain my Matchers (abstract class
+// container because a std::vector<> can't contain my Matchers (abstract class
 // cannot be used for templates)
 typedef struct {
 	Matcher* m;
@@ -65,7 +63,7 @@ typedef struct {
 
 class ModIgnore : public CModule {
 protected:
-	list<IgnoreEntry> IgnoreList;
+	std::vector<IgnoreEntry> IgnoreList;
 public:
 	virtual ~ModIgnore();
 	virtual bool OnLoad(const CString& args, CString& message);
