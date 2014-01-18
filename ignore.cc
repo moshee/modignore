@@ -319,8 +319,7 @@ void ModIgnore::CmdDelIgnore(const CString& line) {
 		return;
 	}
 
-	vector<IgnoreEntry>::iterator ignore = IgnoreList.begin();
-	advance(ignore, index);
+	Matcher* m = IgnoreList[(size_t)index].m;
 	
 	// find the corresponding entry in the registry
 	// we can't just use DelNV or FindNV directly because we have to see if the
@@ -337,10 +336,11 @@ void ModIgnore::CmdDelIgnore(const CString& line) {
 
 		CString data = nv->first;
 
-		if (type.Equals(ignore->m->Type()) && data.Equals(ignore->m->Data())) {
+		if (type.Equals(m->Type()) && data.Equals(m->Data())) {
 			DelNV(nv);
-			IgnoreList.erase(ignore);
-			PutModule("Deleted " + ignore->m->String());
+			CString s = m->String();
+			IgnoreList.erase(IgnoreList.begin() + index);
+			PutModule("Deleted " + s);
 			return;
 		}
 	}
