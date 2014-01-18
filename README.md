@@ -1,4 +1,4 @@
-An ignore module for ZNC 1.0.
+An ignore module for ZNC ≥1.0.
 
 Pull requests welcome.
 
