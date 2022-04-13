@@ -8,8 +8,8 @@
 #include <bitset>
 #include <iostream>
 
-const int NUM_MODES = 11;
-const char MODES[NUM_MODES+1] = "mMaAnNcCjpq";
+const int NUM_MODES = 12;
+const char MODES[NUM_MODES+1] = "mMaAnNcCjpqk";
 
 class Matcher {
 protected:
@@ -89,9 +89,9 @@ public:
 	MODCONSTRUCTOR(ModIgnore) {
 		AddHelpCommand();
 		AddCommand("AddHost",	static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdAddHostMatcher),
-			"[mMaAnNcCjpq] <nick!user@host>",	"Ignore a hostmask from [m]essage, [a]ction, [n]otice, [c]tcp, [j]oins, [p]arts, [q]uits; uppercase = private");
+			"[mMaAnNcCjpqi] <nick!user@host>",	"Ignore a hostmask from [m]essage, [a]ction, [n]otice, [c]tcp, [j]oins, [p]arts, [q]uits, nic[k]; uppercase = private");
 		AddCommand("AddPattern",static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdAddRegexMatcher),
-			"[mMaAnNcCjpq] <regex>",			"Ignore text matching a regular expression");
+			"[mMaAnNcCjpqi] <regex>",			"Ignore text matching a regular expression");
 		AddCommand("Del",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdDelIgnore),
 			"<n>",							"Remove an ignore entry by index");
 		AddCommand("List",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdList),

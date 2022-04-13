@@ -14,7 +14,8 @@ enum IMode {
 	ModePrivCTCP,
 	ModeJoin,
 	ModePart,
-	ModeQuit
+	ModeQuit,
+	ModeNick
 };
 
 class MatcherError : public runtime_error {
@@ -407,6 +408,8 @@ CModule::EModRet ModIgnore::OnRawMessage(CMessage &message) {
 		msgmode = ModePart;
 	} else if (mtype == CMessage::Type::Quit) {
 		msgmode = ModeQuit;
+	} else if (mtype == CMessage::Type::Nick) {
+		msgmode = ModeNick;
 	} else {
 		return CONTINUE;
 	}
