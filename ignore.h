@@ -89,9 +89,9 @@ public:
 	MODCONSTRUCTOR(ModIgnore) {
 		AddHelpCommand();
 		AddCommand("AddHost",	static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdAddHostMatcher),
-			"[mMaAnNcCjpqi] <nick!user@host>",	"Ignore a hostmask from [m]essage, [a]ction, [n]otice, [c]tcp, [j]oins, [p]arts, [q]uits, nic[k]; uppercase = private");
+			"[mMaAnNcCjpqk] <nick!user@host>",	"Ignore a hostmask from [m]essage, [a]ction, [n]otice, [c]tcp, [j]oins, [p]arts, [q]uits, nic[k]; uppercase = private");
 		AddCommand("AddPattern",static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdAddRegexMatcher),
-			"[mMaAnNcCjpqi] <regex>",			"Ignore text matching a regular expression");
+			"[mMaAnNcCjpqk] <regex>",			"Ignore text matching a regular expression");
 		AddCommand("Del",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdDelIgnore),
 			"<n>",							"Remove an ignore entry by index");
 		AddCommand("List",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdList),
