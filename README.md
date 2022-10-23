@@ -5,7 +5,7 @@ Pull requests welcome.
 ### Install
 
 ```
-$ znc-buildmod ignore.cc
+$ znc-buildmod ignore.cpp
 $ mv ignore.so ~/.znc/modules
 ```
 
