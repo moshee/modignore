@@ -8,8 +8,8 @@
 #include <bitset>
 #include <iostream>
 
-const int NUM_MODES = 8;
-const char MODES[NUM_MODES+1] = "mMaAnNcC";
+const int NUM_MODES = 12;
+const char MODES[NUM_MODES+1] = "mMaAnNcCjpqk";
 
 class Matcher {
 protected:
@@ -84,13 +84,14 @@ public:
 	virtual EModRet OnPrivNotice(CNick& nick, CString& message);
 	virtual EModRet OnChanCTCP(CNick& nick, CChan& chan, CString& message);
 	virtual EModRet OnPrivCTCP(CNick& nick, CString& message);
+	virtual EModRet OnRawMessage(CMessage &message);
 
 	MODCONSTRUCTOR(ModIgnore) {
 		AddHelpCommand();
 		AddCommand("AddHost",	static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdAddHostMatcher),
-			"[mMaAnNcC] <nick!user@host>",	"Ignore a hostmask from [m]essage, [a]ction, [n]otice, [c]tcp; uppercase = private");
+			"[mMaAnNcCjpqk] <nick!user@host>",	"Ignore a hostmask from [m]essage, [a]ction, [n]otice, [c]tcp, [j]oins, [p]arts, [q]uits, nic[k]; uppercase = private");
 		AddCommand("AddPattern",static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdAddRegexMatcher),
-			"[mMaAnNcC] <regex>",			"Ignore text matching a regular expression");
+			"[mMaAnNcCjpqk] <regex>",			"Ignore text matching a regular expression");
 		AddCommand("Del",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdDelIgnore),
 			"<n>",							"Remove an ignore entry by index");
 		AddCommand("List",		static_cast<CModCommand::ModCmdFunc>(&ModIgnore::CmdList),

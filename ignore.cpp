@@ -3,7 +3,7 @@
 
 using namespace std;
 
-enum {
+enum IMode {
 	ModeMsg,
 	ModePrivMsg,
 	ModeAction,
@@ -11,7 +11,11 @@ enum {
 	ModeNotice,
 	ModePrivNotice,
 	ModeCTCP,
-	ModePrivCTCP
+	ModePrivCTCP,
+	ModeJoin,
+	ModePart,
+	ModeQuit,
+	ModeNick
 };
 
 class MatcherError : public runtime_error {
@@ -391,6 +395,27 @@ CModule::EModRet ModIgnore::check(CNick& nick, CString& message, int mode) {
 		}
 	}
 	return CONTINUE;
+}
+
+CModule::EModRet ModIgnore::OnRawMessage(CMessage &message) {
+	CString msgtext;
+	IMode msgmode;
+	CMessage::Type mtype = message.GetType();
+
+	if (mtype == CMessage::Type::Join) {
+		msgmode = ModeJoin;
+	} else if (mtype == CMessage::Type::Part) {
+		msgmode = ModePart;
+	} else if (mtype == CMessage::Type::Quit) {
+		msgmode = ModeQuit;
+	} else if (mtype == CMessage::Type::Nick) {
+		msgmode = ModeNick;
+	} else {
+		return CONTINUE;
+	}
+	
+	msgtext = message.ToString(message.IncludeAll);
+	return check(message.GetNick(), msgtext, msgmode);
 }
 
 CModule::EModRet ModIgnore::OnChanMsg(CNick& nick, CChan& chan, CString& message) {
